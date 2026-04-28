@@ -122,6 +122,21 @@ body {
   background: #fff;
 }
 
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.section-title {
+  margin: 6px 0 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .button-row {
   display: flex;
   flex-wrap: wrap;

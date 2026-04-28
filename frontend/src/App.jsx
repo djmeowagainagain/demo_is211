@@ -125,7 +125,7 @@ export default function App() {
 
   const runDeadlock = async () => {
     setIsRunning(true);
-    addLog("▶ Bắt đầu tạo DEADLOCK (A chuyển B, B chuyển A đồng thời)...");
+    addLog("▶ Bắt đầu tạo DEADLOCK (A chuyển B $10, B chuyển A $10 đồng thời)...");
 
     const results = await Promise.allSettled([deadlock1(), deadlock2()]);
     results.forEach((result, index) => {
@@ -144,7 +144,7 @@ export default function App() {
 
   const runOrderedTransfer = async () => {
     setIsRunning(true);
-    addLog("▶ Bắt đầu khóa 2 Phase (2 Phase Locking) có sắp xếp thứ tự ID...");
+    addLog("▶ Bắt đầu khóa 2 Phase có sắp xếp (A chuyển B $10)...");
 
     try {
       const res = await transferOrdered();
@@ -160,7 +160,7 @@ export default function App() {
 
   const runDirtyRead = async () => {
     setIsRunning(true);
-    addLog("▶ Bắt đầu mô phỏng: ĐỌC DỮ LIỆU RÁC (DIRTY READ)...");
+    addLog("▶ Bắt đầu mô phỏng: ĐỌC DỮ LIỆU RÁC (GD1 đang cộng $200)...");
 
     try {
       const res = await dirtyRead();
@@ -178,7 +178,7 @@ export default function App() {
 
   const runUnrepeatableRead = async () => {
     setIsRunning(true);
-    addLog("▶ Bắt đầu mô phỏng: ĐỌC KHÔNG LẶP LẠI (UNREPEATABLE READ)...");
+    addLog("▶ Bắt đầu mô phỏng: ĐỌC KHÔNG LẶP LẠI (GD2 update cộng $50 xen ngang)...");
 
     try {
       const res = await unrepeatableRead();
@@ -195,7 +195,7 @@ export default function App() {
 
   const runRepeatableRead = async () => {
     setIsRunning(true);
-    addLog("▶ Thử lại với mức phân lập: REPEATABLE READ...");
+    addLog("▶ Thử lại với mức phân lập: REPEATABLE READ (GD2 cố update $50)...");
 
     try {
       const res = await unrepeatableReadFix();
@@ -212,7 +212,7 @@ export default function App() {
 
   const runPhantomRead = async () => {
     setIsRunning(true);
-    addLog("▶ Bắt đầu mô phỏng: ĐỌC BÓNG MA (PHANTOM READ)...");
+    addLog("▶ Bắt đầu mô phỏng: ĐỌC BÓNG MA (Chèn lén record $150)...");
 
     try {
       const res = await phantomRead();
@@ -229,7 +229,7 @@ export default function App() {
 
   const runPhantomReadFix = async () => {
     setIsRunning(true);
-    addLog("▶ Thử chạy lại Đọc Bóng Ma trên mức REPEATABLE READ...");
+    addLog("▶ Thử chạy lại Đọc Bóng Ma trên mức REPEATABLE READ (Cố chèn lén $150)...");
 
     try {
       const res = await phantomReadFix();
@@ -283,7 +283,7 @@ export default function App() {
   const boxStyle = { background: "#ffffff", border: "1px solid #e4e4e7", padding: "24px", borderRadius: "12px", marginBottom: "20px", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" };
   const headingStyle = { marginTop: 0, color: "#18181b", fontSize: "1.1rem", fontWeight: "600", letterSpacing: "-0.01em", marginBottom: "6px" };
   const textStyle = { fontSize: "0.9rem", color: "#71717a", marginBottom: "16px", lineHeight: "1.5" };
-  
+
   const btnStyle = { padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontSize: "0.85rem", fontWeight: "500", border: "1px solid transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" };
   const btnPrimary = { ...btnStyle, background: "#18181b", color: "#ffffff" };
   const btnSecondary = { ...btnStyle, background: "#f4f4f5", color: "#18181b", border: "1px solid #e4e4e7" };
@@ -299,10 +299,10 @@ export default function App() {
       </header>
 
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: "30px", alignItems: "start" }}>
-        
+
         {/* Cột Trái: Điều Khiển */}
         <div style={{ display: "flex", flexDirection: "column" }}>
-          
+
           <div style={{ background: "#ffffff", border: "1px solid #e4e4e7", padding: "24px", borderRadius: "12px", marginBottom: "20px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <h3 style={{ ...headingStyle, marginBottom: 0 }}>Tài khoản Demo</h3>
@@ -326,10 +326,14 @@ export default function App() {
 
           <div style={boxStyle}>
             <h4 style={headingStyle}>1. Lost Update (Mất cập nhật)</h4>
-            <p style={textStyle}>Giả lập 2 giao tác cùng trừ tiền tại một thời điểm.</p>
+            <p style={textStyle}>Giả lập 2 giao tác cùng đọc số dư sau đó mới trừ tiền (có delay 600ms).</p>
+
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-              <span style={{ fontSize: "0.85rem", color: "#52525b", fontWeight: "500" }}>Số tiền trừ:</span>
-              <input style={{ width: "80px", padding: "6px 10px", borderRadius: "6px", border: "1px solid #d4d4d8", fontSize: "0.9rem", outline: "none" }} type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} />
+              <span style={{ fontSize: "0.85rem", color: "#52525b", fontWeight: "500" }}>Số tiền trừ mỗi GD:</span>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <span style={{ fontSize: "0.9rem", color: "#71717a", marginRight: "4px" }}>$</span>
+                <input style={{ width: "80px", padding: "6px 10px", borderRadius: "6px", background: "#f4f4f5", border: "1px solid #d4d4d8", fontSize: "0.9rem", outline: "none", color: "#3f3f46", fontFamily: "monospace" }} type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} />
+              </div>
             </div>
             <div style={{ display: "flex", gap: "10px" }}>
               <button style={{ ...btnSecondary, color: "#ef4444" }} onClick={runNoLock} disabled={isRunning}>Rút Cùng Lúc (Sẽ Lỗi)</button>
@@ -340,6 +344,11 @@ export default function App() {
           <div style={boxStyle}>
             <h4 style={headingStyle}>2. Deadlock (Khóa cứng)</h4>
             <p style={textStyle}>A chuyển B, đồng thời B chuyển A dẫn đến chờ đợi tài nguyên chéo.</p>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+              <span style={{ fontSize: "0.85rem", color: "#52525b", fontWeight: "500" }}>Giao dịch giả lập:</span>
+              <span style={{ padding: "6px 10px", borderRadius: "6px", background: "#f4f4f5", border: "1px solid #e4e4e7", fontSize: "0.85rem", color: "#3f3f46", fontFamily: "monospace" }}>A chuyển B $10 & B chuyển A $10</span>
+            </div>
             <div style={{ display: "flex", gap: "10px" }}>
               <button style={{ ...btnSecondary, color: "#ef4444" }} onClick={runDeadlock} disabled={isRunning}>Tạo Bế Tắc</button>
               <button style={btnPrimary} onClick={runOrderedTransfer} disabled={isRunning}>Sắp Xếp Khóa (2PL)</button>
@@ -348,22 +357,37 @@ export default function App() {
 
           <div style={boxStyle}>
             <h4 style={headingStyle}>3. Các Mức Lập Lịch (Isolation Levels)</h4>
-            
+
             <div style={{ paddingBottom: "12px", marginBottom: "12px", borderBottom: "1px solid #f4f4f5" }}>
               <p style={{ ...textStyle, marginBottom: "8px", fontWeight: "500", color: "#27272a" }}>● Dirty Read (Đọc rác):</p>
+              <div style={{ fontSize: "0.8rem", color: "#71717a", marginBottom: "8px" }}>GD1 đổi data chưa Commit, GD2 xen vào đọc mức READ UNCOMMITTED.</div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <span style={{ fontSize: "0.8rem", color: "#52525b", fontWeight: "500" }}>Thao tác:</span>
+                <span style={{ padding: "4px 8px", borderRadius: "6px", background: "#f4f4f5", fontSize: "0.8rem", color: "#3f3f46", fontFamily: "monospace" }}>GD1 Cộng $200</span>
+              </div>
               <button style={btnSecondary} onClick={runDirtyRead} disabled={isRunning}>Thử Đọc Rác</button>
             </div>
-            
+
             <div style={{ paddingBottom: "12px", marginBottom: "12px", borderBottom: "1px solid #f4f4f5" }}>
               <p style={{ ...textStyle, marginBottom: "8px", fontWeight: "500", color: "#27272a" }}>● Unrepeatable Read (Đọc không bền):</p>
+              <div style={{ fontSize: "0.8rem", color: "#71717a", marginBottom: "8px" }}>GD1 đọc lần 1, GD2 Update & Commit. Lần 2 GD1 đọc tiếp thì dư liệu đã bị mất nết.</div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <span style={{ fontSize: "0.8rem", color: "#52525b", fontWeight: "500" }}>Thao tác:</span>
+                <span style={{ padding: "4px 8px", borderRadius: "6px", background: "#f4f4f5", fontSize: "0.8rem", color: "#3f3f46", fontFamily: "monospace" }}>GD2 Cộng $50</span>
+              </div>
               <div style={{ display: "flex", gap: "10px" }}>
                 <button style={btnSecondary} onClick={runUnrepeatableRead} disabled={isRunning}>Thử Gây Lỗi</button>
                 <button style={btnPrimary} onClick={runRepeatableRead} disabled={isRunning}>Fix Bằng Repeatable Read</button>
               </div>
             </div>
-            
+
             <div>
               <p style={{ ...textStyle, marginBottom: "8px", fontWeight: "500", color: "#27272a" }}>● Phantom Read (Đọc bóng ma):</p>
+              <div style={{ fontSize: "0.8rem", color: "#71717a", marginBottom: "8px" }}>Đang thực hiện hàm tập hợp (COUNT), giao dịch khác chèn thêm hàng lọt vào điều kiện WHERE.</div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <span style={{ fontSize: "0.8rem", color: "#52525b", fontWeight: "500" }}>Thao tác:</span>
+                <span style={{ padding: "4px 8px", borderRadius: "6px", background: "#f4f4f5", fontSize: "0.8rem", color: "#3f3f46", fontFamily: "monospace" }}>Chèn thêm Record $150 (Vượt ngưỡng $100)</span>
+              </div>
               <div style={{ display: "flex", gap: "10px" }}>
                 <button style={btnSecondary} onClick={runPhantomRead} disabled={isRunning}>Thử Gây Lỗi</button>
                 <button style={btnPrimary} onClick={runPhantomReadFix} disabled={isRunning}>Fix Bằng Repeatable Read</button>
@@ -374,6 +398,13 @@ export default function App() {
           <div style={boxStyle}>
             <h4 style={headingStyle}>4. Timestamp Ordering</h4>
             <p style={textStyle}>Khảo sát cơ chế gán nhãn thời gian chấp thuận/hủy bỏ giao tác (RTS, WTS).</p>
+            <div style={{ background: "#f0fdf4", padding: "10px", borderRadius: "6px", fontSize: "0.85rem", color: "#166534", marginBottom: "15px", borderLeft: "3px solid #22c55e" }}>
+              <strong>Lý thuyết (Thomas Write Rule):</strong> Mỗi row được đánh dấu RTS/WTS. Bất kỳ giao dịch nào T_cũ (timestamp nhỏ) muốn viết đè nhưng dữ liệu đã bị đọc/ghi bởi hệ T_mới thì sẽ bị Reject để bảo vệ dữ liệu.
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+              <span style={{ fontSize: "0.85rem", color: "#52525b", fontWeight: "500" }}>Kịch bản chạy:</span>
+              <span style={{ padding: "4px 8px", borderRadius: "6px", background: "#f4f4f5", fontSize: "0.85rem", color: "#3f3f46", fontFamily: "monospace" }}>T1(ts=10) đọc, sau đó T2(ts=20) viết, rồi T1 viết trả sau</span>
+            </div>
             <button style={btnPrimary} onClick={runTimestampDemo} disabled={isRunning}>Lập Lịch Timestamp Demo</button>
           </div>
 
